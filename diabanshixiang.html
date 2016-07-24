@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>工作便利贴</title>
+	<style>
+		body{
+			margin: 0;
+			width: 100%;
+			height: 100%;
+			background: url(3.jpg) no-repeat;
+			background-size:100%; 
+		}
+		#tops{
+			width: 100%;
+			height: 60px;
+			background: rgba(0,0,0,0.6);
+			text-align: right;
+		}
+		#text{
+			width: 400px;
+			height: 40px;
+			border:0;
+			margin-right:200px;
+			margin-top: 10px; 
+			border-radius: 6px;
+			padding: 0;
+			box-shadow: 0 0 10px 5px #eee inset;
+		}
+		#box{
+			width: 1000px;
+			height: auto;
+			margin: 0 auto;
+		}
+		p{
+			margin-left: 100px;
+			font-size: 30px;
+			color: #555;
+		}
+		.shu{
+			float: right;
+			display: block;
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			background: #aaa;
+			line-height: 30px;
+			text-align: center;
+			font-size: 18px;
+			color: #555;
+		}
+		#daiban,#yiban{
+			width: auto;
+			height: auto;
+			position: relative;
+		}
+		.fly{
+			position: absolute;
+			right: -40px;
+			top:-50px;
+			width: 100px;
+			height: 100px;
+			z-index: 999;
+			background: url(1.gif) 0 30px no-repeat;
+		}
+		.news,.cons{
+			width: 85%;
+			height: 50px;
+			background: #fff;
+			margin-bottom: 10px;
+			margin-left: 100px;
+			line-height: 50px;
+			border-radius: 6px;
+			border-left: 5px solid #629A9C;
+			box-sizing: border-box;
+			position: relative;
+		}
+		.news input,.cons input{
+			margin-right: 20px;
+			margin-left: 10px;
+		}
+		.close{
+			float: right;
+			margin-right:30px;
+			display: block;
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: #fff; 
+			margin-top: 15px;
+			line-height: 20px;
+			box-shadow: 0 0 3px 5px #ccc inset;
+			border:1px solid #ddd;
+		}
+		.cons{
+			background: rgba(225,225,225,0.5);
+			color: #666;
+		}
+		.input{
+			width: 90%;
+			height:auto;
+			position: absolute;
+			top:0;
+			left:30px;
+		}
+		#wenzi{
+			color: #fff;
+			font-size: 30px;
+			margin-right: 20px;
+		}
+	</style>
+</head>
+<body>
+	<div id="tops">
+		<span id="wenzi">我的工作</span>
+		<input type="text" id="text" placeholder="请输入待办事项">
+	</div>
+	<div id="box">
+		<div id="daiban">
+			<div class="fly"></div>
+			<p>待办事项<span id="db" class="shu">0</span></p>
+			<div id="Nows"></div>
+		</div>
+		<div id="yiban">
+			<div class="fly"></div>
+			<p>已办事项<span id="yb" class="shu">0</span></p>
+			<div id="Cons"></div>
+		</div>
+	</div>
+</body>
+	<script>
+		text.onkeydown=function(e){
+			if(e.keyCode==13){
+				var val=this.value;
+				if(val.length==0){
+					alert("写点什么吧！");
+					return;
+				}
+				var data=getData()//要获取到输入的数据
+				data.push({"title":val,"status":false});//把获取到的数据以键值对的形式添加到本地储存中，status是当前的状态
+				this.value="";//让输入框的文字消失
+				saveData(data);//保存数据；
+				reload();//数据重写，就是让div什么的重新放到页面
+			}
+		}
+
+		/*获取数据*************************/
+		function getData(){
+			/*将本地的存储转换为json    todos是本地存储的键名*/
+			var data=JSON.parse(localStorage.getItem("todos"));
+			return data||[];
+		}
+
+		/*保存数据***********************/
+		function saveData(data){
+			/*将数据存在本地以 [{todos：“输入的值”}]*/
+			 localStorage.setItem("todos",JSON.stringify(data));
+		}
+
+		/*数据重写---即将div多次重新放到页面中*/
+		reload();//先自己调用一下，让始终有你写的数据
+		function reload(){
+			var data=getData();//获取数据，是一个数组的格式；
+			/*未办事项    已办事项     未办/已办事项的条数*/
+			var nowStr="",conStr="",nowNum=0,conNum=0;
+			for (var i = 0; i < data.length; i++) {//遍历data
+				if(data[i].status==false){
+					nowStr+="<div class='news'><input type='checkbox' onclick=yichu("+i+",true)><div class='input' contenteditable onblur=gai("+i+",this.innerHTML)>"+data[i].title+"</div><span class='close' onclick=del("+i+")></span></div>";
+					nowNum++;
+				}else{
+					conStr+="<div class='cons'><input type='checkbox' onclick=yichu("+i+",false)><div class='input' contenteditable onblur=gai("+i+",this.innerHTML)>"+data[i].title+"</div><span class='close' onclick=del("+i+")></span></div>";
+					conNum++;
+				}
+			}
+			Nows.innerHTML=nowStr;
+			Cons.innerHTML=conStr;
+			db.innerHTML=nowNum;
+			yb.innerHTML=conNum;
+		}
+
+		/*这是让已完成的事件放到下面*/
+		function yichu(i,sta){
+			var data=getData();
+			data[i].status=sta;
+			saveData(data);
+			reload();
+		}
+
+		/*这是要改变数据*/
+		function gai(i,text){
+			var data=getData();
+			data[i].title=text;
+			saveData(data);
+		}
+
+
+		/*删除这条*/
+		function del(i){
+			var data=getData();
+			data.splice(i,1);
+			saveData(data);
+			reload();
+		}
+/*localStorage.clear()*/
+	</script>
+
+</html>
